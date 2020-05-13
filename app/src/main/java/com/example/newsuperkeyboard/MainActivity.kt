@@ -17,20 +17,26 @@ import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.widget.AppCompatButton
+import com.google.android.material.button.MaterialButton
 
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
+    lateinit var editText: EditText
+    lateinit var btn1: Button
+    lateinit var btn2: Button
+    lateinit var btn3: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val editText = findViewById<EditText>(R.id.search_edt)
-        val btn1 = findViewById<Button>(R.id.sugg1_btn)
-        val btn2 = findViewById<Button>(R.id.sugg2_btn)
-        val btn3 = findViewById<Button>(R.id.sugg3_btn)
+        editText = findViewById(R.id.search_edt)
+        btn1 = findViewById(R.id.sugg1_btn)
+        btn2 = findViewById(R.id.sugg2_btn)
+        btn3 = findViewById(R.id.sugg3_btn)
         editText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(editable: Editable) {
                 btn1.setText("ddcdc")
@@ -48,22 +54,22 @@ class MainActivity : AppCompatActivity() {
         })
 
         btn1.setOnClickListener(View.OnClickListener {
-            val currentText = editText.text
-            val btnText = btn1.text
-            editText.setText( "$currentText $btnText")
-            editText.setSelection(editText.text.length);
+            addTextInEditText(btn1.text)
         })
-
-
-
-
-
+        btn2.setOnClickListener(View.OnClickListener {
+            addTextInEditText(btn2.text)
+        })
+        btn3.setOnClickListener(View.OnClickListener {
+            addTextInEditText(btn3.text)
+        })
     }
 
-
-
-
-
+    private fun addTextInEditText(btnText: CharSequence){
+        val currentText = editText.text
+        editText.setText( "$currentText $btnText")
+        editText.setSelection(editText.text.length)
+    }
+    
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
