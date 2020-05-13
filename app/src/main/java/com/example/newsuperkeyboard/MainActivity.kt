@@ -13,6 +13,7 @@ import android.view.MenuItem
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
+import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.widget.AppCompatButton
 
@@ -26,9 +27,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val editText = findViewById<EditText>(R.id.search_edt)
-        val btn1 = findViewById<AppCompatButton>(R.id.sugg1_btn)
-        val btn2 = findViewById<AppCompatButton>(R.id.sugg2_btn)
-        val btn3 = findViewById<AppCompatButton>(R.id.sugg3_btn)
+        val btn1 = findViewById<Button>(R.id.sugg1_btn)
+        val btn2 = findViewById<Button>(R.id.sugg2_btn)
+        val btn3 = findViewById<Button>(R.id.sugg3_btn)
         editText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(editable: Editable) {
                 btn1.setText("ddcdc")
