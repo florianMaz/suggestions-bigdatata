@@ -10,6 +10,7 @@ import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
@@ -45,6 +46,15 @@ class MainActivity : AppCompatActivity() {
                 //
             }
         })
+
+        btn1.setOnClickListener(View.OnClickListener {
+            val currentText = editText.text
+            val btnText = btn1.text
+            editText.setText( "$currentText $btnText")
+            editText.setSelection(editText.text.length);
+        })
+
+
 
 
 
