@@ -1,12 +1,11 @@
 package com.example.newsuperkeyboard
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -15,6 +14,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.newsuperkeyboard.adapter.RestaurantAdapter
+import com.example.newsuperkeyboard.util.convertDpToPx
+import com.example.newsuperkeyboard.util.getIdFromString
 import com.google.android.gms.location.LocationServices
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -22,6 +25,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MainViewModel
+
+    private lateinit var adapter: RestaurantAdapter
 
     lateinit var editText: EditText
     lateinit var btn1: Button
@@ -34,16 +39,27 @@ class MainActivity : AppCompatActivity() {
 
         initViews()
         initListeners()
+        initRecyclerView()
 
         viewModel = ViewModelProvider.NewInstanceFactory().create(MainViewModel::class.java)
         viewModel.fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         viewModel.restaurantsLiveData.observe(this, Observer {
-            txvName1.text = it[0].name
-            txvUrl1.text = it[0].url
+            adapter.restaurants = it
         })
 
         checkForPermissions()
+
+        val activityRootView = findViewById<View>(R.id.cl_root)
+        activityRootView.viewTreeObserver.addOnGlobalLayoutListener {
+            val heightDiff = activityRootView.rootView.height - activityRootView.height
+            val isOpen = heightDiff > convertDpToPx(this@MainActivity.applicationContext, 200f)
+            if (isOpen) {
+                ll_predictions.visibility = View.VISIBLE
+            } else {
+                ll_predictions.visibility = View.GONE
+            }
+        }
     }
 
     private fun initViews() {
@@ -54,13 +70,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initListeners() {
-        txvUrl1.setOnClickListener {
-            if (txvUrl1.text.isNotEmpty()) {
-                val browserIntent = Intent(Intent.ACTION_VIEW)
-                browserIntent.data = Uri.parse(txvUrl1.text.toString())
-                startActivity(browserIntent)
-            }
-        }
 
         editText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(editable: Editable) {
@@ -69,14 +78,14 @@ class MainActivity : AppCompatActivity() {
                 btn3.setText("cvnh,")
             }
 
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                //
-            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                s?.let {
-                    if (it.contains("burger")) { //10907
-                        viewModel.requestRestaurant("10907")
+                s?.toString()?.let { str ->
+                    getIdFromString(str)?.let {
+                        viewModel.requestRestaurant(it)
+                    } ?: run {
+                        adapter.restaurants = listOf()
                     }
                 }
             }
@@ -93,17 +102,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun initRecyclerView() {
+        adapter = RestaurantAdapter(this)
+        rcv_restaurants.adapter = adapter
+        rcv_restaurants.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+    }
+
     private fun checkForPermissions() {
         if (ContextCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                )
-                != PackageManager.PERMISSION_GRANTED
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    1
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                1
             )
         }
     }
@@ -115,9 +131,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(
-            requestCode: Int,
-            permissions: Array<out String>,
-            grantResults: IntArray
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
     ) {
         when (requestCode) {
             1 -> {

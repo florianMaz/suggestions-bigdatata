@@ -1,6 +1,5 @@
 package com.example.newsuperkeyboard.com
 
-import android.util.Log
 import com.example.newsuperkeyboard.Constants
 import com.example.newsuperkeyboard.dto.reponse.ApiResponseRestaurant
 import com.example.newsuperkeyboard.dto.reponse.ApiResponseRestaurantMapper
@@ -41,11 +40,6 @@ object TripAdvisorProvider {
                     .addHeader("x-rapidapi-key", "f579cefca5msh8bcbecd3ca8d071p1764f0jsn0781a022e162")
                     .build()
                 chain.proceed(request)
-            }
-            .addInterceptor{ chain ->
-                val response = chain.proceed(chain.request())
-                Log.d("COUCOU", response.code().toString())
-                response
             }
             .build()
     }

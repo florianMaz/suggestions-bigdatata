@@ -6,7 +6,8 @@ class ApiResponseRestaurantMapper {
     fun map(response: ApiResponseRestaurant): List<Restaurant>? = response.data?.map {
         Restaurant(
             it?.name,
-            it?.webUrl
+            it?.webUrl,
+            it?.photo?.images?.small?.url
         )
     }
 }
