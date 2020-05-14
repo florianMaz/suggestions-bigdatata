@@ -1,7 +1,6 @@
 package com.example.newsuperkeyboard
 
 import android.location.Location
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.newsuperkeyboard.com.TripAdvisorProvider
@@ -25,9 +24,6 @@ class MainViewModel : ViewModel() {
                         combined_food = restaurantType
                     ) { success, result ->
                         if (success) {
-                            result?.forEach {
-                                Log.d("COUCOU", it.name)
-                            }
                             restaurantsMutableLiveData.value = result
                         }
                     }
