@@ -16,9 +16,11 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.newsuperkeyboard.adapter.RestaurantAdapter
+import com.example.newsuperkeyboard.db.TwoGramsDB
 import com.example.newsuperkeyboard.util.convertDpToPx
 import com.example.newsuperkeyboard.util.getIdFromString
 import com.google.android.gms.location.LocationServices
+import com.tutomobile.android.sqlite.DBHelper
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -33,9 +35,14 @@ class MainActivity : AppCompatActivity() {
     lateinit var btn2: Button
     lateinit var btn3: Button
 
+    lateinit var twoGramsDB: TwoGramsDB
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val dbHelper = DBHelper(baseContext, "Database.db", null, 1)
+        dbHelper.createDatabase()
 
         initViews()
         initListeners()
@@ -60,6 +67,12 @@ class MainActivity : AppCompatActivity() {
                 ll_predictions.visibility = View.GONE
             }
         }
+
+        twoGramsDB = TwoGramsDB(baseContext)
+
+        twoGramsDB.open()
+        println("GET " + twoGramsDB.getTwoGramsCorpusSuggestion("comme"))
+
     }
 
     private fun initViews() {
