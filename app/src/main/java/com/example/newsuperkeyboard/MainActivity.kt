@@ -1,28 +1,27 @@
 package com.example.newsuperkeyboard
 
-import android.os.Build
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
-import android.provider.UserDictionary
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
-import android.view.inputmethod.EditorInfo
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
-import androidx.appcompat.widget.AppCompatButton
-import com.google.android.material.button.MaterialButton
-
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import com.google.android.gms.location.LocationServices
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
+
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var viewModel: MainViewModel
 
     lateinit var editText: EditText
     lateinit var btn1: Button
@@ -33,10 +32,36 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        initViews()
+        initListeners()
+
+        viewModel = ViewModelProvider.NewInstanceFactory().create(MainViewModel::class.java)
+        viewModel.fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        viewModel.restaurantsLiveData.observe(this, Observer {
+            txvName1.text = it[0].name
+            txvUrl1.text = it[0].url
+        })
+
+        checkForPermissions()
+    }
+
+    private fun initViews() {
         editText = findViewById(R.id.search_edt)
         btn1 = findViewById(R.id.sugg1_btn)
         btn2 = findViewById(R.id.sugg2_btn)
         btn3 = findViewById(R.id.sugg3_btn)
+    }
+
+    private fun initListeners() {
+        txvUrl1.setOnClickListener {
+            if (txvUrl1.text.isNotEmpty()) {
+                val browserIntent = Intent(Intent.ACTION_VIEW)
+                browserIntent.data = Uri.parse(txvUrl1.text.toString())
+                startActivity(browserIntent)
+            }
+        }
+
         editText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(editable: Editable) {
                 btn1.setText("ddcdc")
@@ -49,40 +74,57 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                //
+                s?.let {
+                    if (it.contains("burger")) { //10907
+                        viewModel.requestRestaurant("10907")
+                    }
+                }
             }
         })
 
-        btn1.setOnClickListener(View.OnClickListener {
+        btn1.setOnClickListener {
             addTextInEditText(btn1.text)
-        })
-        btn2.setOnClickListener(View.OnClickListener {
+        }
+        btn2.setOnClickListener {
             addTextInEditText(btn2.text)
-        })
-        btn3.setOnClickListener(View.OnClickListener {
+        }
+        btn3.setOnClickListener {
             addTextInEditText(btn3.text)
-        })
+        }
     }
 
-    private fun addTextInEditText(btnText: CharSequence){
+    private fun checkForPermissions() {
+        if (ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                )
+                != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    1
+            )
+        }
+    }
+
+    private fun addTextInEditText(btnText: CharSequence) {
         val currentText = editText.text
-        editText.setText( "$currentText $btnText")
+        editText.setText("$currentText $btnText")
         editText.setSelection(editText.text.length)
     }
-    
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+    override fun onRequestPermissionsResult(
+            requestCode: Int,
+            permissions: Array<out String>,
+            grantResults: IntArray
+    ) {
+        when (requestCode) {
+            1 -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Toast.makeText(this, "Noice", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 }
