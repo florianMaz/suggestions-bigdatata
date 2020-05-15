@@ -39,16 +39,16 @@ class DBHelper(
     ) {
         //On peut faire ce qu'on veut ici moi j'ai décidé de supprimer la table et de la recréer
         //comme ça lorsque je change la version les id repartent de 0
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TWOGRAMS + ";")
+        //db.execSQL("DROP TABLE IF EXISTS " + TABLE_TWOGRAMS + ";")
         onCreate(db)
     }
 
     companion object {
-        private const val TABLE_TWOGRAMS = "2GRAMS"
+        private const val TABLE_TWOGRAMS = "'2GRAMS'"
         private const val COL_PREVIOUS = "PREVIOUS"
         private const val COL_CURRENT = "CURRENT"
         private const val CREATE_BDD =
-            ("CREATE TABLE " + TABLE_TWOGRAMS + " ("
+            ("CREATE TABLE IF NOT EXISTS " + TABLE_TWOGRAMS + " ("
                     + COL_PREVIOUS + " TEXT NOT NULL, " + COL_CURRENT + " TEXT NOT NULL);")
     }
 

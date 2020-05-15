@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -16,7 +17,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.newsuperkeyboard.adapter.RestaurantAdapter
-import com.example.newsuperkeyboard.db.TwoGramsDB
+import com.example.newsuperkeyboard.db.NGramsDB
 import com.example.newsuperkeyboard.util.convertDpToPx
 import com.example.newsuperkeyboard.util.getIdFromString
 import com.google.android.gms.location.LocationServices
@@ -34,8 +35,9 @@ class MainActivity : AppCompatActivity() {
     lateinit var btn1: Button
     lateinit var btn2: Button
     lateinit var btn3: Button
+    lateinit var sendBtn: Button
 
-    lateinit var twoGramsDB: TwoGramsDB
+    lateinit var nGramsDB: NGramsDB
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +45,10 @@ class MainActivity : AppCompatActivity() {
 
         val dbHelper = DBHelper(baseContext, "Database.db", null, 1)
         dbHelper.createDatabase()
+        nGramsDB = NGramsDB(baseContext)
+
+        nGramsDB.open()
+
 
         initViews()
         initListeners()
@@ -68,10 +74,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        twoGramsDB = TwoGramsDB(baseContext)
 
-        twoGramsDB.open()
-        println("GET " + twoGramsDB.getTwoGramsCorpusSuggestion("comme"))
 
     }
 
@@ -80,15 +83,54 @@ class MainActivity : AppCompatActivity() {
         btn1 = findViewById(R.id.sugg1_btn)
         btn2 = findViewById(R.id.sugg2_btn)
         btn3 = findViewById(R.id.sugg3_btn)
+        sendBtn = findViewById(R.id.send_btn)
+
+        btn1.setText("Je")
+        btn2.setText("Tu")
+        btn3.setText("Salut")
     }
 
     private fun initListeners() {
 
         editText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(editable: Editable) {
-                btn1.setText("ddcdc")
-                btn2.setText("azerty")
-                btn3.setText("cvnh,")
+
+                val lTextEntered = editText.text.split(" ")
+                var resultCorpus = listOf<String>()
+                var resultUser= listOf<String>()
+                if(lTextEntered.size == 1) {
+
+                    Log.d("previousWord", lTextEntered.last())
+                    resultCorpus =  nGramsDB.getTwoGramsCorpusSuggestion(lTextEntered.last())
+                    resultUser =  nGramsDB.getUserTwoGramsCorpusSuggestion(lTextEntered.last())
+                } else if(lTextEntered.size >= 2) {
+                    val previousWord1 = lTextEntered.get(lTextEntered.lastIndex-1)
+                    val previousWord2 = lTextEntered.last()
+                    Log.d("previousWord1", previousWord1)
+                    Log.d("previousWord2", previousWord2)
+                    resultCorpus = nGramsDB.getThreeGramsCorpusSuggestion(previousWord1, previousWord2)
+                    resultUser = nGramsDB.getUserThreeGramsCorpusSuggestion(previousWord1, previousWord2)
+                }
+                Log.d("result corpus", resultCorpus.toString())
+                Log.d("result user", resultUser.toString())
+
+                if (resultUser.size >= 2 && resultCorpus.size >= 1) {
+                    btn1.setText(resultCorpus[0])
+                    btn2.setText(resultUser[0])
+                    btn3.setText(resultUser[1])
+                } else if(resultUser.size == 1 && resultCorpus.size >= 2) {
+                    btn1.setText(resultCorpus[0])
+                    btn2.setText(resultUser[0])
+                    btn3.setText(resultCorpus[1])
+                } else if(resultCorpus.size == 3) {
+                    btn1.setText(resultCorpus[2])
+                    btn2.setText(resultCorpus[0])
+                    btn3.setText(resultCorpus[1])
+                } else if(resultUser.size == 1 && resultCorpus.isEmpty()) {
+                    btn1.setText("")
+                    btn2.setText(resultUser[0])
+                    btn3.setText("")
+                }
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -112,6 +154,16 @@ class MainActivity : AppCompatActivity() {
         }
         btn3.setOnClickListener {
             addTextInEditText(btn3.text)
+        }
+
+        sendBtn.setOnClickListener {
+            val lTextEntered = editText.text.split(" ")
+            if (lTextEntered.size == 2) {
+                nGramsDB.insertTwoGramsCorpusSuggestion(editText.text.toString())
+
+            } else if (lTextEntered.size >= 3) {
+                nGramsDB.insertThreeGramsCorpusSuggestion(editText.text.toString())
+            }
         }
     }
 
