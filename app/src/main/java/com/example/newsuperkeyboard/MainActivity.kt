@@ -3,6 +3,7 @@ package com.example.newsuperkeyboard
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -23,6 +24,7 @@ import com.example.newsuperkeyboard.util.getIdFromString
 import com.google.android.gms.location.LocationServices
 import com.tutomobile.android.sqlite.DBHelper
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -30,6 +32,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainViewModel
 
     private lateinit var adapter: RestaurantAdapter
+
+    private lateinit var tts: TextToSpeech
 
     lateinit var editText: EditText
     lateinit var btn1: Button
@@ -53,6 +57,14 @@ class MainActivity : AppCompatActivity() {
         initViews()
         initListeners()
         initRecyclerView()
+
+        tts = TextToSpeech(this, TextToSpeech.OnInitListener { status ->
+            if (status != TextToSpeech.SUCCESS) {
+                Log.d("COUCOU", "TTS init failed")
+            } else {
+                tts.language = Locale.FRENCH
+            }
+        })
 
         viewModel = ViewModelProvider.NewInstanceFactory().create(MainViewModel::class.java)
         viewModel.fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -146,6 +158,7 @@ class MainActivity : AppCompatActivity() {
                 s?.toString()?.let { str ->
                     getIdFromString(str)?.let {
                         viewModel.requestRestaurant(it)
+                        playFoodQuote()
                     } ?: run {
                         adapter.restaurants = listOf()
                     }
@@ -200,6 +213,14 @@ class MainActivity : AppCompatActivity() {
         val currentText = editText.text
         editText.setText("$currentText $btnText")
         editText.setSelection(editText.text.length)
+    }
+
+    private fun playFoodQuote() {
+        if (!toggle.isChecked) return
+        if (tts.isSpeaking) return
+        val array = resources.getStringArray(R.array.food)
+        val str = array[Random().nextInt(array.size)]
+        tts.speak(str, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 
     override fun onRequestPermissionsResult(

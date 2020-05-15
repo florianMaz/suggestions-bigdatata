@@ -11,4 +11,10 @@
         <item>Javascript</item>
         <item>Jquery</item>
     </string-array>
+
+    <string-array name="food">
+        <item>Bien manger c\'est important</item>
+        <item>Le gras c\'est la vie</item>
+        <item>Elle est ou la poulette ?</item>
+    </string-array>
 </resources>
