@@ -94,25 +94,28 @@ class MainActivity : AppCompatActivity() {
 
         editText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(editable: Editable) {
+                // "le " => le
+                var textClean = editText.text.trim()
+                var lTextEntered = textClean.split(" ")
 
-                val lTextEntered = editText.text.split(" ")
                 var resultCorpus = listOf<String>()
                 var resultUser= listOf<String>()
+                //Log.d("lTextEntered", lTextEntered.toString())
                 if(lTextEntered.size == 1) {
 
-                    Log.d("previousWord", lTextEntered.last())
+                    //Log.d("previousWord", lTextEntered.last())
                     resultCorpus =  nGramsDB.getTwoGramsCorpusSuggestion(lTextEntered.last())
                     resultUser =  nGramsDB.getUserTwoGramsCorpusSuggestion(lTextEntered.last())
                 } else if(lTextEntered.size >= 2) {
                     val previousWord1 = lTextEntered.get(lTextEntered.lastIndex-1)
                     val previousWord2 = lTextEntered.last()
-                    Log.d("previousWord1", previousWord1)
-                    Log.d("previousWord2", previousWord2)
+                    //Log.d("previousWord1", previousWord1)
+                    //Log.d("previousWord2", previousWord2)
                     resultCorpus = nGramsDB.getThreeGramsCorpusSuggestion(previousWord1, previousWord2)
                     resultUser = nGramsDB.getUserThreeGramsCorpusSuggestion(previousWord1, previousWord2)
                 }
-                Log.d("result corpus", resultCorpus.toString())
-                Log.d("result user", resultUser.toString())
+                //Log.d("result corpus", resultCorpus.toString())
+                //Log.d("result user", resultUser.toString())
 
                 if (resultUser.size >= 2 && resultCorpus.size >= 1) {
                     btn1.setText(resultCorpus[0])
@@ -129,6 +132,10 @@ class MainActivity : AppCompatActivity() {
                 } else if(resultUser.size == 1 && resultCorpus.isEmpty()) {
                     btn1.setText("")
                     btn2.setText(resultUser[0])
+                    btn3.setText("")
+                } else if(resultUser.isEmpty() && resultCorpus.isEmpty()) {
+                    btn1.setText("")
+                    btn2.setText("")
                     btn3.setText("")
                 }
             }
